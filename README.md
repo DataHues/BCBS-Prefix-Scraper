@@ -47,7 +47,7 @@ This project ensures a dependable source for Blue Cross Blue Shield (BCBS) prefi
 - **Output File**: [BCBS_Data.csv](./BCBS-Prefix-Scraper/BCBS_Data.csv) 
   - Two columns: `Prefix` (BCBS code) and `Name` (insurer name).  
   - Alphabetically sorted from A to Z.
-- **Repository (Code)**: [BCBS_Code.ipynb](./BCBS-Prefix-Scraper/BCBS_Code.ipynb) 
+- **Repository (Code)**: [BCBS_Code.ipynb](./BCBS-Prefix-Scraper/BCBS_Code.ipynb)
 
 ## 5. Discussion
 
