@@ -65,3 +65,10 @@ The BCBS Prefix Scraper is a Python script built with Playwright (async API) and
    ```bash
    git clone https://github.com/your-username/BCBS-Prefix-Scraper.git
    cd BCBS-Prefix-Scraper
+2. **Set Up Environment**
+   python -m venv venv
+   source venv/bin/activate    # macOS/Linux
+   venv\Scripts\activate       # Windows
+   pip install -r requirements.txt
+   playwright install
+
