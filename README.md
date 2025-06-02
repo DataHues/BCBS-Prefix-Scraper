@@ -44,10 +44,10 @@ This project ensures a dependable source for Blue Cross Blue Shield (BCBS) prefi
 ## 4. Results
 
 - **Total Prefix-Name Pairs Scraped**: 18,801  
-- **Output File**: [BCBS_data.csv](./BCBS_data.csv) 
+- **Output File**: [BCBS_Data.csv](./BCBS-Prefix-Scraper/BCBS_Data.csv) 
   - Two columns: `Prefix` (BCBS code) and `Name` (insurer name).  
   - Alphabetically sorted from A to Z.
-- **Repository (Code)**: [BCBS_Code](./BCBS_Code/) 
+- **Repository (Code)**: [BCBS_Code.ipynb](./BCBS-Prefix-Scraper/BCBS_Code.ipynb) 
 
 ## 5. Discussion
 
