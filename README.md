@@ -1,74 +1,81 @@
-# Blue-Cross-Blue-Shield-Scraper
-# 1. Introduction
-The BCBS Prefix Scraper is a Python script built with Playwright (async API) and pandas. Its purpose is to collect every Blue Cross Blue Shield (BCBS) prefix and the corresponding insurer name from the BCBS Prefix List website. By scraping all alphabetical subpages (A–Z) and handling pagination, it generates a single, consolidated CSV file. This eliminates the need for manual lookups when the public site is unreliable.
+# BCBS Prefix Scraper Report
+
+## 1. Introduction
+This project ensures a dependable source for Blue Cross Blue Shield (BCBS) prefixes and insurer names. The official BCBS Prefix List website is often cluttered with ads and loads slowly, making it unreliable for quick reference. To provide consistent, ad-free access to this information, the scraper:
+
+1. Visits every alphabetical range (A–Z) of BCBS prefixes.  
+2. Handles pagination on each subpage.  
+3. Outputs a consolidated CSV file that can be referenced internally without relying on the site.
 
 ## 2. Data Source
 - **Website**: https://mypayerdirectory.com/bcbs-prefix-list/  
 - **Content**:  
-  - A series of subpages, each covering a three-letter prefix range (e.g., “faa-to-fzz,” “gaa-to-gzz,” “taa-to-tzz,” etc.).  
-  - Each subpage contains a paginated HTML table with two columns:  
-    1. **Prefix** (three-letter BCBS code)  
+  - A series of subpages, each covering a three-letter prefix range (e.g., `faa-to-fzz`, `gaa-to-gzz`, `taa-to-tzz`).  
+  - Each subpage has a paginated HTML table with two columns:
+    1. **Prefix** (BCBS code)  
     2. **Name** (insurer name)
 
-## 3. Methodology
+## 3. Methods
 
 1. **Launch Headless Browser**  
-   - Uses Playwright’s async API to open a headless Chromium instance.
+   - Used Playwright’s async API to open a headless Chromium instance.
 
 2. **Locate Alphabetical Subpages**  
-   - Navigate to `/bcbs-prefix-list/`.  
-   - Wait for JavaScript to inject all “*-to-*” links that correspond to A–Z ranges.  
-   - Collect every link containing `/bcbs-prefix-list/` and `"-to-"`, dedupe, and sort alphabetically.
+   - Navigated to `/bcbs-prefix-list/`.  
+   - Waited for JavaScript to inject all A–Z links (any `<a>` whose `href` contains `"-to-"`).  
+   - Collected every link containing `/bcbs-prefix-list/` and filtered for `"-to-"`, deduped, and sorted alphabetically.
 
 3. **Scrape Each Subpage**  
    - For each A–Z URL:  
-     1. Load the page and wait for the table to appear.  
-     2. Iterate through all `<tr>` rows in the table body.  
-     3. For each row, extract the first two `<td>` cells (`td:nth-child(1)` for Prefix; `td:nth-child(2)` for Name).  
-     4. Append nonempty `[prefix, name]` pairs to an in-memory list.  
-     5. Check for a “Next” button (`a.paginate_button.next`); if present and not disabled, click it and repeat.
+     1. Loaded the page and waited for the table to render.  
+     2. Queried all `<tr>` rows in `<table><tbody>`.  
+     3. Extracted text from the first two `<td>` cells (`td:nth-child(1)` for Prefix; `td:nth-child(2)` for Name).  
+     4. Appended each nonempty `[prefix, name]` pair to a list.  
+     5. Checked for a “Next” button (`a.paginate_button.next`). If present and not disabled, clicked it and repeated.
 
 4. **Close Browser & Export**  
-   - After visiting all subpages, close Chromium.  
-   - Convert the collected list into a pandas DataFrame with columns `["Prefix", "Name"]`.  
-   - Write the DataFrame to `BCBS_Prefix_Data.csv` (UTF-8, no index).
+   - Closed the browser once all subpages and pagination pages were visited.  
+   - Converted the collected list into a pandas DataFrame with columns `["Prefix", "Name"]`.  
+   - Wrote the DataFrame to a CSV file.
 
 5. **Post-Processing (Sorting)**  
-   - Load `BCBS_Prefix_Data.csv` in pandas, sort by the “Prefix” column, and save as `BCBS_Prefix_Data_Cleaned.csv` (or overwrite the original file).
+   - Loaded the CSV in pandas, sorted by the “Prefix” column, and saved the sorted version so prefixes appear in true A–Z order.
 
-## 4. Challenges Faced
+## 4. Results
 
-1. **Dynamic Link Injection**  
-   - The site loads some alphabetical subpage links via JavaScript after the initial HTML render.  
-   - Initial attempts using a static CSS selector (e.g., `a[href*="bcbs-prefixes"]`) missed several ranges.  
-   - Solution: Wait for any `a[href*="/bcbs-prefix-list/"][href*="-to-"]` element to appear, then use `eval_on_selector_all` to gather all links whose `href` contains `"-to-"`.
+- **Total Prefix-Name Pairs Scraped**: **  
+- **Output File**: [BCBS_Prefix_Data_sorted.csv](https://github.com/your-username/bcbs-scraper/blob/main/BCBS_Prefix_Data_sorted.csv)  
+  - Two columns: `Prefix` (BCBS code) and `Name` (insurer name).  
+  - Alphabetically sorted from A to Z.
+- **Repository (Code)**: [scrape_bcbs_prefixes.py](https://github.com/your-username/bcbs-scraper/blob/main/scrape_bcbs_prefixes.py)
 
-2. **Pagination Variability**  
-   - Different subpages had varying numbers of pagination pages (some single-page, some multi-page).  
-   - The “Next” button text and disabled state could change depending on CSS classes.  
-   - Solution: In each loop, check for `a.paginate_button.next`; break if it’s missing or has `"disabled"` in its class.
+## 5. Discussion
 
-3. **Site Unreliability**  
-   - The public BCBS Prefix List occasionally experiences downtime or partial content loading.  
-   - Relying on a single HTTP GET could yield incomplete data.  
-   - Solution: Wrap every navigation and selector call in `try/except` blocks. Log errors and continue scraping remaining subpages rather than aborting completely.
+- **Coverage**  
+  All alphabetical subpages (A–Z) were discovered and scraped, including dynamically injected links. Pagination on each page was handled to ensure no rows were missed.
 
-4. **Selector Robustness**  
-   - If BCBS modified their table structure (e.g., adding extra columns or changing class names), the scraper would break.  
-   - Solution: Use `td:nth-child(1)` and `td:nth-child(2)` rather than relying on specific CSS classes like `column-1` or `column-2`.
+- **Reliability**  
+  The public Blue Cross Blue Shield Prefix List often experiences downtime. Wrapping navigation and selectors in `try/except` blocks prevented a single failure from aborting the entire process.
 
----
+- **Challenges**  
+  1. **Dynamic Content**: Alphabetical links load via JavaScript, requiring an explicit wait before scraping.  
+  2. **Pagination Variation**: Some subpages had multiple pages, so detecting and clicking the “Next” button until it became disabled was necessary.  
+  3. **Selector Changes**: If the site’s HTML structure changes (e.g., new CSS classes), the scraper’s selectors must be updated.
 
-## 5. Usage Instructions
+## 6. Evaluation and Conclusion
 
-1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/your-username/BCBS-Prefix-Scraper.git
-   cd BCBS-Prefix-Scraper
-2. **Set Up Environment**
-   python -m venv venv
-   source venv/bin/activate    # macOS/Linux
-   venv\Scripts\activate       # Windows
-   pip install -r requirements.txt
-   playwright install
+- **Key Learnings**  
+  - Playwright’s async API can reliably scrape JavaScript-driven sites.  
+  - Robust error handling is essential for unstable web sources.
+
+- **Next Steps**  
+  - Automate scraping on a regular schedule to keep the CSV up to date.  
+  - Monitor for site changes and update selectors as needed.  
+  - Consider adding incremental update logic to detect new prefixes without re-scraping everything.
+
+## 7. References
+
+- BCBS Prefix List website (https://mypayerdirectory.com/bcbs-prefix-list/)
+- Playwrite Documentation ([https://playwright.dev/docs/intro](https://playwright.dev/python/docs/api/class-playwright))
+
 
